@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: https:'//techsolutions-backend-636p.onrender.com/api'
+  baseURL: 'https://techsolutions-backend-636p.onrender.com/api'
 });
 
 // Este interceptor saca el token del localStorage y lo pone en el header
