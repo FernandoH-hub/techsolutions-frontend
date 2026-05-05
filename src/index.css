@@ -1,0 +1,8 @@
+/* src/index.css */
+body, html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  background-color: #f4f7f6; /* Esto ayuda a que el fondo gris se vea uniforme */
+}
