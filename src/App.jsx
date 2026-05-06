@@ -22,7 +22,8 @@ const WelcomeScreen = ({ stats }) => {
         <p style={{ margin: 0, opacity: 0.9 }}>Bienvenido al panel de control de TechSolutions.</p>
       </header>
 
-      <div style={statsGridStyle}>
+      {/* Usamos la clase de index.css para el grid */}
+      <div className="stats-grid" style={statsGridStyle}>
         <div onClick={() => navigate('/proyectos')} style={{ ...interactiveCardStyle, borderBottom: '5px solid #3498db' }}>
           <span style={{ fontSize: '2em' }}>📁</span>
           <h2 style={{ fontSize: '1.8em', margin: '10px 0' }}>{stats.proyectos}</h2>
@@ -63,6 +64,7 @@ function App() {
     rawIntegrantes: []
   });
   
+  // En móviles empieza colapsado (cerrado)
   const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 768);
 
   const user = JSON.parse(localStorage.getItem('user'));
@@ -103,50 +105,26 @@ function App() {
   const activeLink = (path) => 
     location.pathname === path ? { background: '#34495e', color: 'white', borderLeft: '4px solid #3498db' } : {};
 
+  // Cálculo dinámico del margen para el contenido (solo en desktop)
   const calculateMargin = () => {
-    if (isLoginPage) return '0';
-    if (window.innerWidth < 768) return '0';
+    if (isLoginPage || window.innerWidth < 768) return '0';
     return isCollapsed ? '80px' : '280px';
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f4f7f6', overflowX: 'hidden' }}>
+    <div className="app-layout">
       
-      <style>{`
-        body { margin: 0; padding: 0; overflow-x: hidden; }
-        @media print {
-          nav.sidebar, .sidebar { display: none !important; }
-          main { margin-left: 0 !important; width: 100% !important; }
-        }
-        @media (max-width: 768px) {
-          .sidebar { 
-            transform: ${isCollapsed ? 'translateX(-100%)' : 'translateX(0)'};
-            width: 280px !important;
-          }
-          .main-content-area { 
-            margin-left: 0 !important; 
-            padding: 10px !important;
-            width: 100vw !important;
-          }
-          .overlay {
-            display: ${isCollapsed ? 'none' : 'block'};
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-          }
-        }
-      `}</style>
-
-      {/* Overlay para cerrar sidebar en móvil */}
-      {!isLoginPage && <div className="overlay" onClick={() => setIsCollapsed(true)}></div>}
+      {/* Overlay para cerrar sidebar en móvil al tocar fuera */}
+      {!isLoginPage && !isCollapsed && window.innerWidth < 768 && (
+        <div className="overlay" onClick={() => setIsCollapsed(true)}></div>
+      )}
 
       {!isLoginPage && (
         <nav 
-          className="sidebar" 
-          style={{ ...sidebarStyle, width: isCollapsed ? '80px' : '280px' }}
+          className={`sidebar ${!isCollapsed ? 'active' : ''}`} 
+          style={{ width: isCollapsed ? (window.innerWidth < 768 ? '280px' : '80px') : '280px' }}
         >
-          {/* Botón de toggle corregido */}
+          {/* Botón de toggle con posición adaptativa */}
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)} 
             style={{
@@ -203,15 +181,10 @@ function App() {
       )}
 
       <main 
-        className="main-content-area"
+        className="main-content"
         style={{ 
-          flex: 1, 
           marginLeft: calculateMargin(),
-          transition: 'margin-left 0.3s ease',
           padding: isLoginPage ? '0' : '20px',
-          minHeight: '100vh',
-          width: '100%',
-          boxSizing: 'border-box'
         }}
       >
         <Routes>
@@ -239,7 +212,7 @@ function App() {
   );
 }
 
-// Estilos
+// Objetos de estilo para mantener la estética previa (sin interferir con el layout de index.css)
 const statsGridStyle = { 
   display: 'grid', 
   gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
@@ -255,7 +228,6 @@ const statusInfoWrapper = {
   fontSize: '0.85em' 
 };
 
-const sidebarStyle = { background: '#2c3e50', display: 'flex', flexDirection: 'column', boxShadow: '4px 0 10px rgba(0,0,0,0.1)', transition: 'all 0.3s ease', height: '100vh', position: 'fixed', top: 0, left: 0, zIndex: 1000 };
 const welcomeBannerStyle = { background: '#2c3e50', color: 'white', padding: '25px', borderRadius: '12px', marginBottom: '20px' };
 const interactiveCardStyle = { padding: '20px', background: 'white', borderRadius: '10px', textAlign: 'center', cursor: 'pointer', transition: 'transform 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' };
 const systemStatusStyle = { padding: '20px', background: 'white', borderRadius: '10px', border: '1px solid #e0e0e0' };
