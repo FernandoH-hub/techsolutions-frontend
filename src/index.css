@@ -1,8 +1,62 @@
 /* src/index.css */
+
+/* 1. Ajustes Globales */
+* {
+  box-sizing: border-box; /* Asegura que el padding no estire los divs */
+}
+
 body, html {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  overflow-x: hidden;
-  background-color: #f4f7f6; /* Esto ayuda a que el fondo gris se vea uniforme */
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden; /* Evita el desplazamiento lateral del cuerpo */
+  background-color: #f4f7f6;
+  font-family: sans-serif;
+}
+
+/* 2. Contenedor Principal (Donde vive tu App) */
+#root {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 3. Ajustes de Responsividad para Celulares */
+@media (max-width: 768px) {
+  
+  /* Si tu Sidebar se oculta, asegúrate de que el contenido use todo el ancho */
+  .main-content, .dashboard-container {
+    margin-left: 0 !important; 
+    width: 100% !important;
+    padding: 10px !important;
+  }
+
+  /* Las tarjetas de estadísticas se ponen una debajo de otra */
+  .stats-grid, .cards-container {
+    display: flex;
+    flex-direction: column !important;
+    gap: 15px;
+  }
+
+  /* Las tarjetas ocupan el 100% del ancho disponible */
+  .card, .stat-box {
+    width: 100% !important;
+    margin: 0 auto;
+  }
+
+  /* IMPORTANTE: El truco para que las tablas no rompan el diseño */
+  .table-container, table {
+    display: block;
+    width: 100%;
+    overflow-x: auto; /* Permite deslizar solo la tabla de lado */
+    white-space: nowrap; /* Evita que el texto se amontone */
+  }
+}
+
+/* 4. Utilidad para ocultar cosas en móvil si es necesario */
+@media (max-width: 480px) {
+  .hide-mobile {
+    display: none;
+  }
 }
