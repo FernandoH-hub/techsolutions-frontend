@@ -18,7 +18,6 @@ function Usuarios() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-
   const currentUser = JSON.parse(localStorage.getItem('user')) || {};
 
   const preguntasPredefinidas = [
@@ -62,7 +61,6 @@ function Usuarios() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     const preguntaFinal = formData.security_question === "Otra pregunta (Personalizada)..." 
       ? formData.custom_question 
       : formData.security_question;
@@ -75,10 +73,7 @@ function Usuarios() {
       return alert("La contraseña debe tener al menos 6 caracteres, incluyendo letras y números.");
     }
 
-    const payload = { 
-      ...formData, 
-      security_question: preguntaFinal 
-    };
+    const payload = { ...formData, security_question: preguntaFinal };
 
     try {
       if (editingId) {
@@ -98,7 +93,6 @@ function Usuarios() {
   const handleEditar = (u) => {
     setEditingId(u.id);
     const esPredefinida = preguntasPredefinidas.includes(u.security_question);
-    
     setFormData({
       username: u.username || '',
       full_name: u.full_name || '',
@@ -108,27 +102,21 @@ function Usuarios() {
       custom_question: esPredefinida ? '' : (u.security_question || ''),
       security_answer: '' 
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Subir al formulario en móvil
   };
 
   const handleEliminar = async (u) => {
-    // 1. No borrarse a sí mismo
     if (u.id === currentUser.id) return alert("No puedes eliminar tu propia cuenta.");
-
-    // 2. Jerarquía de Admin
     if (currentUser.role === 'Administrador' && (u.role === 'Administrador' || u.role === 'Superadministrador')) {
         return alert("Permisos insuficientes: No puedes eliminar a otros administradores.");
     }
-
-    // 3. Jerarquía de Superadmin
     if (currentUser.role === 'Superadministrador' && u.role === 'Superadministrador') {
         return alert("Seguridad: No puedes eliminar a otros Superadministradores.");
     }
 
     if (window.confirm(`¿Estás seguro de eliminar a ${u.full_name}?`)) {
       try {
-        await api.delete(`/users/${u.id}`, {
-            headers: { 'role': currentUser.role }
-        });
+        await api.delete(`/users/${u.id}`, { headers: { 'role': currentUser.role } });
         fetchUsuarios();
       } catch (err) {
         alert(err.response?.data?.error || "Error al eliminar el usuario.");
@@ -137,10 +125,98 @@ function Usuarios() {
   };
 
   return (
-    <div style={{ display: 'flex', gap: '20px', padding: '20px', maxWidth: '1250px', margin: 'auto', fontFamily: 'Arial, sans-serif' }}>
-      
+    <div className="usuarios-container">
+      <style>{`
+        .usuarios-container {
+          display: flex;
+          gap: 20px;
+          padding: 20px;
+          max-width: 1250px;
+          margin: auto;
+          font-family: Arial, sans-serif;
+          flex-direction: row;
+        }
+        .form-section {
+          flex: 0 0 350px;
+          background: #fff;
+          padding: 25px;
+          border-radius: 12px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+          height: fit-content;
+        }
+        .table-section {
+          flex: 1;
+          background: #fff;
+          padding: 25px;
+          border-radius: 12px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+          overflow-x: auto;
+        }
+        .search-controls {
+          display: flex;
+          gap: 10px;
+          marginBottom: 20px;
+        }
+
+        /* DISEÑO RESPONSIVO MÓVIL */
+        @media (max-width: 850px) {
+          .usuarios-container {
+            flex-direction: column;
+            padding: 10px;
+          }
+          .form-section {
+            flex: none;
+            width: 100%;
+            box-sizing: border-box;
+          }
+          .search-controls {
+            flex-direction: column;
+          }
+          
+          /* Convertir tabla en Cards */
+          table, thead, tbody, th, td, tr { 
+            display: block; 
+          }
+          thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+          }
+          tr {
+            border: 1px solid #eee;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+          }
+          td {
+            border: none;
+            position: relative;
+            padding-left: 50% !important;
+            text-align: right !important;
+          }
+          td:before {
+            position: absolute;
+            left: 10px;
+            width: 45%;
+            white-space: nowrap;
+            font-weight: bold;
+            text-align: left;
+            color: #7f8c8d;
+          }
+          td:nth-of-type(1):before { content: "#"; }
+          td:nth-of-type(2):before { content: "Usuario"; }
+          td:nth-of-type(3):before { content: "Rol"; }
+          td:nth-of-type(4):before { content: "Acciones"; }
+          
+          .actions-div {
+            justify-content: flex-end;
+          }
+        }
+      `}</style>
+
       {/* FORMULARIO */}
-      <div style={{ flex: '0 0 350px', background: '#fff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.08)', height: 'fit-content' }}>
+      <div className="form-section">
         <h2 style={{ color: '#2c3e50', marginTop: 0, fontSize: '1.2em' }}>
             {editingId ? '📝 Editar Usuario' : '👤 Nuevo Usuario'}
         </h2>
@@ -184,7 +260,7 @@ function Usuarios() {
             />
           )}
 
-          <label style={labelStyle}>Respuesta de Seguridad {editingId && <small>(dejar vacío para no cambiar)</small>}</label>
+          <label style={labelStyle}>Respuesta {editingId && <small>(dejar vacío para no cambiar)</small>}</label>
           <input 
             type="text" 
             value={formData.security_answer} 
@@ -202,12 +278,12 @@ function Usuarios() {
       </div>
 
       {/* TABLA DE USUARIOS */}
-      <div style={{ flex: '1', background: '#fff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.08)' }}>
+      <div className="table-section">
         <h2 style={{ color: '#2c3e50', marginTop: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
             👥 Usuarios Activos
         </h2>
         
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <div className="search-controls" style={{ marginBottom: '20px' }}>
           <input 
             type="text" 
             placeholder="🔍 Buscar por nombre..." 
@@ -234,14 +310,13 @@ function Usuarios() {
           </thead>
           <tbody>
             {usuariosFiltrados.map((u, index) => {
-              // LÓGICA DE BLOQUEO VISUAL
               const esPropioUser = u.id === currentUser.id;
               const esAdminOSuper = u.role === 'Administrador' || u.role === 'Superadministrador';
               const adminBloqueado = currentUser.role === 'Administrador' && esAdminOSuper;
               const superBloqueado = currentUser.role === 'Superadministrador' && u.role === 'Superadministrador' && !esPropioUser;
 
               return (
-                <tr key={u.id} style={{ borderBottom: '1px solid #eee' }}>
+                <tr key={u.id}>
                   <td style={tdStyle}>{index + 1}</td>
                   <td style={tdStyle}>
                     <strong>{u.full_name}</strong> {esPropioUser && <small>(Tú)</small>}<br />
@@ -251,13 +326,10 @@ function Usuarios() {
                     <span style={badgeStyle(u.role)}>{u.role?.toUpperCase()}</span>
                   </td>
                   <td style={tdStyle}>
-                    <div style={{ display: 'flex', gap: '15px' }}>
-                      {/* Solo mostrar Editar si no está bloqueado por jerarquía */}
+                    <div className="actions-div" style={{ display: 'flex', gap: '15px' }}>
                       {!(adminBloqueado && !esPropioUser) && (
                         <button onClick={() => handleEditar(u)} style={actionBtnStyle('#3498db')}>Editar</button>
                       )}
-                      
-                      {/* Solo mostrar Eliminar si NO es el mismo usuario Y cumple jerarquía */}
                       {!esPropioUser && !adminBloqueado && !superBloqueado && (
                         <button onClick={() => handleEliminar(u)} style={actionBtnStyle('#e74c3c')}>Eliminar</button>
                       )}
@@ -273,19 +345,21 @@ function Usuarios() {
   );
 }
 
+// Estilos constantes
 const labelStyle = { fontSize: '12px', fontWeight: 'bold', color: '#7f8c8d', marginBottom: '-5px' };
 const inputStyle = { padding: '10px', borderRadius: '6px', border: '1px solid #ddd', outline: 'none', fontSize: '14px', background: '#fcfcfc' };
 const btnStyle = { padding: '12px', background: '#27ae60', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s' };
 const eyeButtonStyle = { position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' };
 const thStyle = { padding: '12px', textAlign: 'left', fontSize: '14px' };
-const tdStyle = { padding: '15px 12px', fontSize: '14px' };
+const tdStyle = { padding: '15px 12px', fontSize: '14px', borderBottom: '1px solid #eee' };
 const actionBtnStyle = (color) => ({ color, border: 'none', background: 'none', cursor: 'pointer', fontWeight: 'bold', padding: 0 });
 
 const badgeStyle = (role) => ({
   padding: '4px 10px', borderRadius: '20px', fontSize: '0.7em', fontWeight: 'bold',
   background: role === 'Superadministrador' ? '#f3e5f5' : role === 'Administrador' ? '#e3f2fd' : '#fff3e0',
   color: role === 'Superadministrador' ? '#8e24aa' : role === 'Administrador' ? '#1e88e5' : '#fb8c00',
-  border: `1px solid`
+  border: `1px solid`,
+  display: 'inline-block'
 });
 
 export default Usuarios;
