@@ -23,14 +23,8 @@ function Login() {
     setLoading(true);
     try {
       const response = await api.post('/users/login', credentials);
-      
-      // EXPLICACIÓN: response.data.user ahora trae el { ..., token: '...' } 
-      // que configuramos en el userController.js
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      
-      // REGISTRO EN BITÁCORA
       await registrarLog('ACCESO', 'SISTEMA', `Inicio de sesión exitoso para el usuario: ${credentials.username}`);
-      
       navigate('/'); 
     } catch (err) {
       alert("Error: " + (err.response?.data?.error || "Credenciales incorrectas"));
@@ -63,9 +57,7 @@ function Login() {
         security_answer: recoveryData.answer,
         new_password: recoveryData.newPassword
       });
-
       await registrarLog('ACTUALIZAR', 'SEGURIDAD', `El usuario ${recoveryData.username} restableció su contraseña mediante pregunta de seguridad`);
-
       alert("Contraseña actualizada. Ya puedes iniciar sesión.");
       setStep(0);
     } catch (err) {
@@ -106,14 +98,13 @@ function Login() {
             </div>
             <div style={inputGroupStyle}>
               <label style={labelStyle}>Contraseña</label>
-              {/* CORRECCIÓN AQUÍ: Se añadió inline style position relative */}
-              <div style={{ position: 'relative', width: '100%' }}>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <input 
                   type={showPassword ? "text" : "password"} 
                   placeholder="••••••••" 
                   value={credentials.password}
                   onChange={e => setCredentials({...credentials, password: e.target.value})} 
-                  style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', paddingRight: '45px' }}
+                  style={{ ...inputStyle, width: '100%', paddingRight: '45px', boxSizing: 'border-box' }}
                   required
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} style={eyeButtonStyle}>
@@ -196,16 +187,16 @@ function Login() {
 // --- ESTILOS ---
 const linkBtnStyle = { background: 'none', border: 'none', color: '#3498db', cursor: 'pointer', fontSize: '0.85em', textDecoration: 'underline' };
 const backBtnStyle = { background: 'none', border: 'none', color: '#7f8c8d', cursor: 'pointer', fontSize: '0.9em', marginTop: '10px' };
-const fullPageBackground = { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', width: '100vw', background: 'linear-gradient(135deg, #2c3e50 0%, #000000 100%)', margin: 0, padding: 0 };
-const loginCard = { width: '90%', maxWidth: '420px', padding: '40px 30px', background: '#ffffff', borderRadius: '8px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)', position: 'relative', boxSizing: 'border-box' };
+const fullPageBackground = { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', width: '100%', background: 'linear-gradient(135deg, #2c3e50 0%, #000000 100%)', margin: 0, padding: 0 };
+const loginCard = { width: '90%', maxWidth: '420px', padding: '40px 30px', background: '#ffffff', borderRadius: '8px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)', boxSizing: 'border-box' };
 const logoContainer = { display: 'flex', justifyContent: 'center', marginBottom: '20px' };
-const logoPlaceholder = { width: '80px', height: '80px', borderRadius: '50%', background: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', border: '1px solid #eee' };
-const headerStyle = { textAlign: 'center', marginBottom: '25px' };
+const logoPlaceholder = { width: '100px', height: '100px', borderRadius: '50%', background: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', border: '1px solid #eee' };
+const headerStyle = { textAlign: 'center', marginBottom: '35px' };
 const inputGroupStyle = { display: 'flex', flexDirection: 'column', gap: '8px' };
 const labelStyle = { fontSize: '0.9em', fontWeight: '600', color: '#34495e' };
-const inputStyle = { padding: '12px 15px', borderRadius: '4px', border: '1px solid #ced4da', fontSize: '1em', backgroundColor: '#fdfdfd', transition: 'border-color 0.3s ease' };
-const buttonStyle = { marginTop: '10px', padding: '14px', color: 'white', border: 'none', borderRadius: '4px', fontSize: '1em', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.3s ease', letterSpacing: '1px', backgroundColor: '#27ae60' };
-const eyeButtonStyle = { position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em', display: 'flex', alignItems: 'center', height: '100%', padding: 0 };
-const footerStyle = { textAlign: 'center', marginTop: '30px', fontSize: '0.75em', color: '#bdc3c7' };
+const inputStyle = { padding: '12px 15px', borderRadius: '4px', border: '1px solid #ced4da', fontSize: '1em', backgroundColor: '#fdfdfd' };
+const buttonStyle = { marginTop: '15px', padding: '14px', color: 'white', border: 'none', borderRadius: '4px', fontSize: '1em', fontWeight: 'bold', cursor: 'pointer', backgroundColor: '#27ae60' };
+const eyeButtonStyle = { position: 'absolute', right: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em', padding: '5px', display: 'flex', alignItems: 'center' };
+const footerStyle = { textAlign: 'center', marginTop: '40px', fontSize: '0.75em', color: '#bdc3c7' };
 
 export default Login;
