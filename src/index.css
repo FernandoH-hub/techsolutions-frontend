@@ -9,33 +9,57 @@ body, html {
   margin: 0;
   padding: 0;
   width: 100%;
-  /* Eliminamos el overflow-x: hidden para permitir el movimiento si es necesario */
+  /* Mantenemos limpio el scroll horizontal global */
+  overflow-x: hidden; 
   background-color: #f4f7f6;
   font-family: sans-serif;
+  /* Evita el rebote extraño en iOS/Android */
+  position: relative;
 }
 
 /* 2. Contenedor Principal */
 #root {
   width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  /* Cambiamos min-height para que no fuerce el scroll si no hay contenido */
+  min-height: 100%; 
+  display: block; 
 }
 
 /* 3. Ajustes de Responsividad para Celulares */
 @media (max-width: 768px) {
   
-  /* Forzamos a que el contenedor principal no sea más ancho que la pantalla */
+  /* Ajuste para el Layout Principal (Sidebar + Contenido) */
+  .app-container, .dashboard-layout { 
+    display: block !important; /* Deja de ser flex-row */
+    width: 100% !important;
+  }
+
+  /* EL ARREGLO PARA EL SIDEBAR: 
+     Lo ponemos como una capa superior que no empuja el contenido */
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    z-index: 9999;
+    /* Si tenés un botón de cerrar, usá transform para esconderlo:
+    transform: translateX(-100%); */
+  }
+
+  /* EL ARREGLO PARA EL CONTENIDO Y EL ESPACIO BLANCO ABAJO */
   .main-content, .dashboard-container, .content-wrapper {
-    margin-left: 0 !important; 
+    margin-left: 0 !important; /* ELIMINA el hueco del sidebar */
     width: 100% !important;
     max-width: 100vw !important;
-    padding: 15px !important;
-    overflow-x: hidden; /* Aquí sí lo ocultamos para que el contenedor no se estire */
+    padding: 10px !important;
+    /* Evita que se estire al infinito */
+    min-height: auto !important; 
+    overflow: visible !important; 
   }
 
   /* Las tarjetas se apilan verticalmente */
-  .stats-grid, .cards-container {
+  .stats-grid, .cards-container, .grid-container {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
@@ -43,35 +67,52 @@ body, html {
   }
 
   /* Aseguramos que las tarjetas y cajas de bienvenida no se salgan */
-  .card, .stat-box, .welcome-box {
+  .card, .stat-box, .welcome-box, .project-card {
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 auto;
+    margin: 0 0 15px 0 !important;
+    /* Para que no se vean gigantes, podés quitar el min-height si tenés uno */
+    min-height: auto !important;
   }
 
-  /* El truco para las tablas: el contenedor se desliza, la tabla se mantiene firme */
-  .table-container {
+  /* EL TRUCO PARA EL FORMULARIO DE "NUEVO PROYECTO" */
+  form, .form-container {
+    width: 100% !important;
+    padding: 10px !important;
+  }
+
+  /* El truco para las tablas */
+  .table-container, .table-responsive {
     display: block;
     width: 100%;
-    overflow-x: auto; /* Permite deslizar SOLO la tabla */
+    overflow-x: auto; 
     -webkit-overflow-scrolling: touch;
     margin-top: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
   }
 
   table {
     width: 100%;
-    min-width: 600px; /* Evita que la tabla se amontone demasiado */
+    min-width: 600px; 
   }
 }
 
-/* 4. Ajustes para textos muy grandes en pantallas pequeñas */
+/* 4. Ajustes finos para pantallas muy pequeñas */
 @media (max-width: 480px) {
   h1, .welcome-text {
-    font-size: 1.4rem !important;
+    font-size: 1.2rem !important;
     word-wrap: break-word;
+    text-align: center;
   }
   
   .hide-mobile {
     display: none;
+  }
+
+  /* Achica botones para que no se amontonen */
+  button, .btn {
+    width: 100% !important;
+    margin-bottom: 10px;
   }
 }
