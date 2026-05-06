@@ -2,22 +2,22 @@
 
 /* 1. Ajustes Globales */
 * {
-  box-sizing: border-box; /* Asegura que el padding no estire los divs */
+  box-sizing: border-box; 
 }
 
 body, html {
   margin: 0;
   padding: 0;
   width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden; /* Evita el desplazamiento lateral del cuerpo */
+  /* Eliminamos el overflow-x: hidden para permitir el movimiento si es necesario */
   background-color: #f4f7f6;
   font-family: sans-serif;
 }
 
-/* 2. Contenedor Principal (Donde vive tu App) */
+/* 2. Contenedor Principal */
 #root {
   width: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -25,37 +25,52 @@ body, html {
 /* 3. Ajustes de Responsividad para Celulares */
 @media (max-width: 768px) {
   
-  /* Si tu Sidebar se oculta, asegúrate de que el contenido use todo el ancho */
-  .main-content, .dashboard-container {
+  /* Forzamos a que el contenedor principal no sea más ancho que la pantalla */
+  .main-content, .dashboard-container, .content-wrapper {
     margin-left: 0 !important; 
     width: 100% !important;
-    padding: 10px !important;
+    max-width: 100vw !important;
+    padding: 15px !important;
+    overflow-x: hidden; /* Aquí sí lo ocultamos para que el contenedor no se estire */
   }
 
-  /* Las tarjetas de estadísticas se ponen una debajo de otra */
+  /* Las tarjetas se apilan verticalmente */
   .stats-grid, .cards-container {
-    display: flex;
+    display: flex !important;
     flex-direction: column !important;
+    width: 100% !important;
     gap: 15px;
   }
 
-  /* Las tarjetas ocupan el 100% del ancho disponible */
-  .card, .stat-box {
+  /* Aseguramos que las tarjetas y cajas de bienvenida no se salgan */
+  .card, .stat-box, .welcome-box {
     width: 100% !important;
+    max-width: 100% !important;
     margin: 0 auto;
   }
 
-  /* IMPORTANTE: El truco para que las tablas no rompan el diseño */
-  .table-container, table {
+  /* El truco para las tablas: el contenedor se desliza, la tabla se mantiene firme */
+  .table-container {
     display: block;
     width: 100%;
-    overflow-x: auto; /* Permite deslizar solo la tabla de lado */
-    white-space: nowrap; /* Evita que el texto se amontone */
+    overflow-x: auto; /* Permite deslizar SOLO la tabla */
+    -webkit-overflow-scrolling: touch;
+    margin-top: 15px;
+  }
+
+  table {
+    width: 100%;
+    min-width: 600px; /* Evita que la tabla se amontone demasiado */
   }
 }
 
-/* 4. Utilidad para ocultar cosas en móvil si es necesario */
+/* 4. Ajustes para textos muy grandes en pantallas pequeñas */
 @media (max-width: 480px) {
+  h1, .welcome-text {
+    font-size: 1.4rem !important;
+    word-wrap: break-word;
+  }
+  
   .hide-mobile {
     display: none;
   }
