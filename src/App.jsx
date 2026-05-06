@@ -70,7 +70,7 @@ function App() {
   const isLoginPage = location.pathname === '/login';
 
   const obtenerDatos = async () => {
-    if (isLoginPage) return;
+    if (isLoginPage || !user) return;
     try {
       const [resClients, resProjects, resTasks, resTeam] = await Promise.all([
         api.get('/clients'),
@@ -103,17 +103,17 @@ function App() {
   const activeLink = (path) => 
     location.pathname === path ? { background: '#34495e', color: 'white', borderLeft: '4px solid #3498db' } : {};
 
-  // Cálculo dinámico del margen para el contenido
   const calculateMargin = () => {
     if (isLoginPage) return '0';
-    if (window.innerWidth < 768) return '0'; // En móvil siempre 0
+    if (window.innerWidth < 768) return '0';
     return isCollapsed ? '80px' : '280px';
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f4f7f6' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f4f7f6', overflowX: 'hidden' }}>
       
       <style>{`
+        body { margin: 0; padding: 0; overflow-x: hidden; }
         @media print {
           nav.sidebar, .sidebar { display: none !important; }
           main { margin-left: 0 !important; width: 100% !important; }
@@ -121,28 +121,47 @@ function App() {
         @media (max-width: 768px) {
           .sidebar { 
             transform: ${isCollapsed ? 'translateX(-100%)' : 'translateX(0)'};
-            width: 260px !important;
+            width: 280px !important;
           }
           .main-content-area { 
             margin-left: 0 !important; 
-            padding: 15px !important;
+            padding: 10px !important;
+            width: 100vw !important;
+          }
+          .overlay {
+            display: ${isCollapsed ? 'none' : 'block'};
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
           }
         }
       `}</style>
+
+      {/* Overlay para cerrar sidebar en móvil */}
+      {!isLoginPage && <div className="overlay" onClick={() => setIsCollapsed(true)}></div>}
 
       {!isLoginPage && (
         <nav 
           className="sidebar" 
           style={{ ...sidebarStyle, width: isCollapsed ? '80px' : '280px' }}
         >
-          <button onClick={() => setIsCollapsed(!isCollapsed)} style={toggleButtonStyle}>
+          {/* Botón de toggle corregido */}
+          <button 
+            onClick={() => setIsCollapsed(!isCollapsed)} 
+            style={{
+              ...toggleButtonStyle,
+              right: window.innerWidth < 768 ? '-45px' : '-15px',
+              backgroundColor: window.innerWidth < 768 ? '#2c3e50' : '#3498db'
+            }}
+          >
             {isCollapsed ? '➡' : '⬅'}
           </button>
 
           <Link to="/" style={{ textDecoration: 'none' }} onClick={() => window.innerWidth < 768 && setIsCollapsed(true)}>
             <div style={{ padding: '30px 10px', textAlign: 'center', background: '#1a252f', overflow: 'hidden' }}>
               <h2 style={{ color: '#ecf0f1', margin: 0, fontSize: isCollapsed && window.innerWidth > 768 ? '0.8em' : '1.5em' }}>
-                TechSolutions
+                {isCollapsed && window.innerWidth > 768 ? 'TS' : 'TechSolutions'}
               </h2>
             </div>
           </Link>
@@ -150,35 +169,35 @@ function App() {
           <div style={{ marginTop: '20px', flexGrow: 1, overflowY: 'auto' }}>
             <div style={separatorStyle}>{(isCollapsed && window.innerWidth > 768) ? '---' : 'GESTIÓN'}</div>
             <Link to="/clientes" style={{ ...linkStyle, ...activeLink('/clientes') }} onClick={() => window.innerWidth < 768 && setIsCollapsed(true)}>
-              {(!isCollapsed || window.innerWidth < 768) && "Clientes"}
+              {(isCollapsed && window.innerWidth > 768) ? '🏢' : 'Clientes'}
             </Link>
             <Link to="/proyectos" style={{ ...linkStyle, ...activeLink('/proyectos') }} onClick={() => window.innerWidth < 768 && setIsCollapsed(true)}>
-              {(!isCollapsed || window.innerWidth < 768) && "Proyectos"}
+              {(isCollapsed && window.innerWidth > 768) ? '📁' : 'Proyectos'}
             </Link>
             <Link to="/tareas" style={{ ...linkStyle, ...activeLink('/tareas') }} onClick={() => window.innerWidth < 768 && setIsCollapsed(true)}>
-              {(!isCollapsed || window.innerWidth < 768) && "Tareas"}
+              {(isCollapsed && window.innerWidth > 768) ? '✅' : 'Tareas'}
             </Link>
 
             <div style={separatorStyle}>{(isCollapsed && window.innerWidth > 768) ? '---' : 'ANÁLISIS'}</div>
             <Link to="/estadisticas" style={{ ...linkStyle, ...activeLink('/estadisticas') }} onClick={() => window.innerWidth < 768 && setIsCollapsed(true)}>
-              {(!isCollapsed || window.innerWidth < 768) && "Estadísticas"}
+              {(isCollapsed && window.innerWidth > 768) ? '📊' : 'Estadísticas'}
             </Link>
 
             {isAdmin && (
               <>
                 <div style={separatorStyle}>{(isCollapsed && window.innerWidth > 768) ? '---' : 'ADMIN'}</div>
                 <Link to="/usuarios" style={{ ...linkStyle, ...activeLink('/usuarios') }} onClick={() => window.innerWidth < 768 && setIsCollapsed(true)}>
-                  {(!isCollapsed || window.innerWidth < 768) && "Usuarios"}
+                  {(isCollapsed && window.innerWidth > 768) ? '👥' : 'Usuarios'}
                 </Link>
                 <Link to="/bitacora" style={{ ...linkStyle, ...activeLink('/bitacora') }} onClick={() => window.innerWidth < 768 && setIsCollapsed(true)}>
-                  {(!isCollapsed || window.innerWidth < 768) && "Bitácora"}
+                  {(isCollapsed && window.innerWidth > 768) ? '📜' : 'Bitácora'}
                 </Link>
               </>
             )}
           </div>
 
           <button onClick={handleLogout} style={logoutButtonStyle}>
-            {(!isCollapsed || window.innerWidth < 768) && "Cerrar Sesión"}
+            {(isCollapsed && window.innerWidth > 768) ? '🚪' : 'Cerrar Sesión'}
           </button>
         </nav>
       )}
@@ -189,9 +208,10 @@ function App() {
           flex: 1, 
           marginLeft: calculateMargin(),
           transition: 'margin-left 0.3s ease',
-          padding: isLoginPage ? '0' : '30px',
+          padding: isLoginPage ? '0' : '20px',
           minHeight: '100vh',
-          width: '100%'
+          width: '100%',
+          boxSizing: 'border-box'
         }}
       >
         <Routes>
@@ -219,16 +239,17 @@ function App() {
   );
 }
 
-// Estilos Responsivos Mejorados
+// Estilos
 const statsGridStyle = { 
   display: 'grid', 
-  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
+  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
   gap: '15px', 
   marginBottom: '30px' 
 };
 
 const statusInfoWrapper = { 
   display: 'flex', 
+  flexDirection: 'row',
   flexWrap: 'wrap', 
   gap: '15px', 
   fontSize: '0.85em' 
@@ -239,8 +260,8 @@ const welcomeBannerStyle = { background: '#2c3e50', color: 'white', padding: '25
 const interactiveCardStyle = { padding: '20px', background: 'white', borderRadius: '10px', textAlign: 'center', cursor: 'pointer', transition: 'transform 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' };
 const systemStatusStyle = { padding: '20px', background: 'white', borderRadius: '10px', border: '1px solid #e0e0e0' };
 const roleBadgeStyle = { background: '#ecf0f1', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', color: '#2980b9' };
-const toggleButtonStyle = { position: 'absolute', right: '-15px', top: '20px', background: '#3498db', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', zIndex: 1001 };
-const linkStyle = { color: '#bdc3c7', textDecoration: 'none', padding: '12px 20px', display: 'block', transition: 'all 0.2s ease', borderLeft: '4px solid transparent', fontSize: '0.9em' };
+const toggleButtonStyle = { position: 'absolute', top: '20px', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', zIndex: 1001, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' };
+const linkStyle = { color: '#bdc3c7', textDecoration: 'none', padding: '15px 20px', display: 'block', transition: 'all 0.2s ease', borderLeft: '4px solid transparent', fontSize: '0.95em' };
 const separatorStyle = { padding: '20px 20px 5px', fontSize: '0.65em', color: '#5d6d7e', fontWeight: 'bold', letterSpacing: '1px' };
 const logoutButtonStyle = { background: 'none', border: 'none', color: '#e74c3c', padding: '20px', textAlign: 'left', cursor: 'pointer', fontWeight: 'bold', borderTop: '1px solid #34495e', width: '100%' };
 
