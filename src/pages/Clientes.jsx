@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import api from '../api'; 
-import { registrarLog } from '../logger'; // <-- Importación añadida
+import { registrarLog } from '../logger'; 
 
 function Clientes() {
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Estados para formulario (Registro y Edición)
   const [editId, setEditId] = useState(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -31,12 +30,10 @@ function Clientes() {
 
   useEffect(() => { obtenerClientes(); }, []);
 
-  // --- LÓGICA DE RESUMEN ---
   const total = clientes.length;
   const activos = clientes.filter(c => c.status === 'Activo').length;
   const inactivos = clientes.filter(c => c.status === 'Inactivo') .length;
 
-  // --- FILTRADO Y ORDENAMIENTO (Inactivos al fondo) ---
   const clientesFiltrados = clientes
     .filter(c => {
       const cumpleBusqueda = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -44,7 +41,7 @@ function Clientes() {
       const cumpleEstado = statusFilter === 'Todos' || c.status === statusFilter;
       return cumpleBusqueda && cumpleEstado;
     })
-    .sort((a, b) => (a.status === 'Inactivo' ? 1 : -1)); // Los inactivos siempre al final
+    .sort((a, b) => (a.status === 'Inactivo' ? 1 : -1));
 
   const handlePhoneChange = (e) => {
     const input = e.target.value.replace(/\D/g, '');
@@ -60,12 +57,10 @@ function Clientes() {
     try {
       if (editId) {
         await api.put(`/clients/${editId}`, { name, email, phone, company });
-        // REGISTRO EN BITÁCORA (Edición)
         await registrarLog('ACTUALIZAR', 'CLIENTES', `Se actualizaron los datos del cliente: ${name} (${company})`);
         alert("Cliente actualizado");
       } else {
         await api.post('/clients', { name, email, phone, company, status: 'Activo' });
-        // REGISTRO EN BITÁCORA (Creación)
         await registrarLog('CREAR', 'CLIENTES', `Se registró un nuevo cliente: ${name} de la empresa ${company}`);
         alert("Cliente registrado");
       }
@@ -80,7 +75,6 @@ function Clientes() {
     if (confirmacion) {
       try {
         await api.put(`/clients/${cliente.id}`, { status: nuevoEstado });
-        // REGISTRO EN BITÁCORA (Cambio de estado)
         await registrarLog('ACTUALIZAR', 'CLIENTES', `Cambio de estado de "${cliente.status}" a "${nuevoEstado}" para el cliente: ${cliente.name}`);
         obtenerClientes();
       } catch (err) { alert("Error al cambiar estado"); }
@@ -93,7 +87,7 @@ function Clientes() {
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: '100%' }}>
       <h2 style={{ color: '#2c3e50', marginBottom: '20px' }}>Gestión de Asociados</h2>
       
       <section style={cardStyle}>
@@ -110,15 +104,16 @@ function Clientes() {
         </form>
       </section>
 
-      <div style={statsGrid}>
+      {/* Grid de estadísticas responsivo */}
+      <div className="stats-grid" style={statsGrid}>
         <div style={{ ...miniCard, borderLeft: '5px solid #2c3e50' }}> <p style={miniCardLabel}>TOTAL</p> <h2>{total}</h2> </div>
         <div style={{ ...miniCard, borderLeft: '5px solid #2ecc71' }}> <p style={miniCardLabel}>ACTIVOS</p> <h2 style={{color:'#2ecc71'}}>{activos}</h2> </div>
         <div style={{ ...miniCard, borderLeft: '5px solid #e74c3c' }}> <p style={miniCardLabel}>INACTIVOS</p> <h2 style={{color:'#e74c3c'}}>{inactivos}</h2> </div>
       </div>
 
       <div style={filterBar}>
-        <input style={{...inputStyle, flex: 2}} placeholder="🔍 Buscar por nombre o empresa..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-        <select style={{...inputStyle, flex: 1}} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+        <input style={{...inputStyle, flex: '1 1 200px'}} placeholder="🔍 Buscar nombre o empresa..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+        <select style={{...inputStyle, flex: '1 1 150px'}} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="Todos">Todos los estados</option>
           <option value="Activo">Activos</option>
           <option value="Inactivo">Inactivos</option>
@@ -126,39 +121,49 @@ function Clientes() {
       </div>
 
       <div style={cardStyle}>
-        <table style={tableStyle}>
-          <thead>
-            <tr style={headerRowStyle}>
-              <th style={paddingStyle}>#</th>
-              <th style={paddingStyle}>Nombre Completo</th>
-              <th style={paddingStyle}>Empresa</th>
-              <th style={paddingStyle}>Contacto</th>
-              <th style={paddingStyle}>Estado</th>
-              <th style={paddingStyle}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clientesFiltrados.map((c, i) => (
-              <tr key={c.id} style={{ ...rowStyle, opacity: c.status === 'Inactivo' ? 0.6 : 1, background: c.status === 'Inactivo' ? '#f9f9f9' : 'white' }}>
-                <td style={paddingStyle}>{i + 1}</td>
-                <td style={paddingStyle}><strong>{c.name}</strong></td>
-                <td style={paddingStyle}>{c.company}</td>
-                <td style={paddingStyle}>✉️ {c.email}<br/>📞 {c.phone}</td>
-                <td style={paddingStyle}>
-                  <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.7em', fontWeight: 'bold', background: c.status === 'Activo' ? '#2ecc71' : '#95a5a6', color: 'white' }}>
-                    {c.status.toUpperCase()}
-                  </span>
-                </td>
-                <td style={paddingStyle}>
-                  <button onClick={() => prepararEdicion(c)} style={actionBtn}>Editar</button>
-                  <button onClick={() => toggleEstado(c)} style={{ ...actionBtn, background: c.status === 'Activo' ? '#e74c3c' : '#2ecc71' }}>
-                    {c.status === 'Activo' ? 'Desactivar' : 'Activar'}
-                  </button>
-                </td>
+        {/* CONTENEDOR CON SCROLL PARA LA TABLA */}
+        <div style={{ overflowX: 'auto', width: '100%' }}>
+          <table style={{ ...tableStyle, minWidth: '600px' }}>
+            <thead>
+              <tr style={headerRowStyle}>
+                <th style={paddingStyle}>#</th>
+                <th style={paddingStyle}>Nombre Completo</th>
+                <th style={paddingStyle}>Empresa</th>
+                <th style={paddingStyle}>Contacto</th>
+                <th style={paddingStyle}>Estado</th>
+                <th style={paddingStyle}>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {clientesFiltrados.map((c, i) => (
+                <tr key={c.id} style={{ ...rowStyle, opacity: c.status === 'Inactivo' ? 0.6 : 1, background: c.status === 'Inactivo' ? '#f9f9f9' : 'white' }}>
+                  <td style={paddingStyle}>{i + 1}</td>
+                  <td style={paddingStyle}><strong>{c.name}</strong></td>
+                  <td style={paddingStyle}>{c.company}</td>
+                  <td style={paddingStyle}>
+                    <div style={{ fontSize: '0.85em' }}>
+                      <span title={c.email}>✉️ {c.email}</span><br/>
+                      <span>📞 {c.phone}</span>
+                    </div>
+                  </td>
+                  <td style={paddingStyle}>
+                    <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.7em', fontWeight: 'bold', background: c.status === 'Activo' ? '#2ecc71' : '#95a5a6', color: 'white' }}>
+                      {c.status.toUpperCase()}
+                    </span>
+                  </td>
+                  <td style={paddingStyle}>
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                      <button onClick={() => prepararEdicion(c)} style={actionBtn}>Editar</button>
+                      <button onClick={() => toggleEstado(c)} style={{ ...actionBtn, background: c.status === 'Activo' ? '#e74c3c' : '#2ecc71' }}>
+                        {c.status === 'Activo' ? 'Baja' : 'Alta'}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -166,17 +171,18 @@ function Clientes() {
 
 const formGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginTop: '15px' };
 const cancelBtn = { background: '#95a5a6', color: 'white', border: 'none', padding: '10px', borderRadius: '4px', cursor: 'pointer' };
-const actionBtn = { marginRight: '5px', padding: '5px 10px', fontSize: '0.8em', border: 'none', borderRadius: '3px', background: '#34495e', color: 'white', cursor: 'pointer' };
-const cardStyle = { background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', marginBottom: '20px' };
-const inputStyle = { padding: '10px', borderRadius: '4px', border: '1px solid #ddd' };
+const actionBtn = { padding: '5px 10px', fontSize: '0.8em', border: 'none', borderRadius: '3px', background: '#34495e', color: 'white', cursor: 'pointer' };
+const cardStyle = { background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', marginBottom: '20px', overflow: 'hidden' };
+const inputStyle = { padding: '10px', borderRadius: '4px', border: '1px solid #ddd', minWidth: '0' };
 const btnStyle = { border: 'none', color: 'white', padding: '10px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' };
-const statsGrid = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '20px' };
+// Ajustado para ser flexible en móviles
+const statsGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '15px', marginBottom: '20px' };
 const miniCard = { background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' };
 const miniCardLabel = { margin: 0, fontSize: '0.7em', color: '#7f8c8d' };
-const filterBar = { display: 'flex', gap: '15px', marginBottom: '20px' };
+const filterBar = { display: 'flex', gap: '15px', marginBottom: '20px', flexWrap: 'wrap' };
 const tableStyle = { width: '100%', borderCollapse: 'collapse' };
-const headerRowStyle = { background: '#2c3e50', color: 'white' };
+const headerRowStyle = { background: '#2c3e50', color: 'white', textAlign: 'left' };
 const rowStyle = { borderBottom: '1px solid #eee' };
-const paddingStyle = { padding: '12px' };
+const paddingStyle = { padding: '12px', whiteSpace: 'nowrap' };
 
 export default Clientes;
