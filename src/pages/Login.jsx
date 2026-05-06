@@ -7,7 +7,7 @@ function Login() {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(0); // 0: Login, 1: Buscar Usuario, 2: Reset
+  const [step, setStep] = useState(0); 
   const navigate = useNavigate();
 
   const [recoveryData, setRecoveryData] = useState({
@@ -97,14 +97,14 @@ function Login() {
             </div>
             <div style={inputGroupStyle}>
               <label style={labelStyle}>Contraseña</label>
-              {/* Contenedor relativo forzado */}
-              <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+              {/* CORRECCIÓN FINAL DEL CONTENEDOR */}
+              <div style={passwordWrapperStyle}>
                 <input 
                   type={showPassword ? "text" : "password"} 
                   placeholder="••••••••" 
                   value={credentials.password}
                   onChange={e => setCredentials({...credentials, password: e.target.value})} 
-                  style={{ ...inputStyle, width: '100%', paddingRight: '45px', boxSizing: 'border-box' }}
+                  style={passwordInputStyle}
                   required
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} style={eyeButtonStyle}>
@@ -124,21 +124,14 @@ function Login() {
           </form>
         )}
 
+        {/* ... (Resto de los pasos Step 1 y Step 2 se mantienen igual) ... */}
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={inputGroupStyle}>
               <label style={labelStyle}>Ingresa tu usuario para comenzar</label>
-              <input 
-                type="text" 
-                value={recoveryData.username}
-                onChange={e => setRecoveryData({...recoveryData, username: e.target.value})}
-                style={inputStyle}
-                placeholder="Usuario..."
-              />
+              <input type="text" value={recoveryData.username} onChange={e => setRecoveryData({...recoveryData, username: e.target.value})} style={inputStyle} placeholder="Usuario..." />
             </div>
-            <button onClick={handleFetchQuestion} disabled={loading} style={buttonStyle}>
-              {loading ? "BUSCANDO..." : "CONTINUAR"}
-            </button>
+            <button onClick={handleFetchQuestion} disabled={loading} style={buttonStyle}>{loading ? "BUSCANDO..." : "CONTINUAR"}</button>
             <button onClick={() => setStep(0)} style={backBtnStyle}>Volver al Login</button>
           </div>
         )}
@@ -151,87 +144,79 @@ function Login() {
             </div>
             <div style={inputGroupStyle}>
               <label style={labelStyle}>Tu respuesta</label>
-              <input 
-                type="text" 
-                value={recoveryData.answer}
-                onChange={e => setRecoveryData({...recoveryData, answer: e.target.value})}
-                style={inputStyle}
-                required
-              />
+              <input type="text" value={recoveryData.answer} onChange={e => setRecoveryData({...recoveryData, answer: e.target.value})} style={inputStyle} required />
             </div>
             <div style={inputGroupStyle}>
               <label style={labelStyle}>Nueva Contraseña</label>
-              <input 
-                type="password" 
-                value={recoveryData.newPassword}
-                onChange={e => setRecoveryData({...recoveryData, newPassword: e.target.value})}
-                style={inputStyle}
-                required
-              />
+              <input type="password" value={recoveryData.newPassword} onChange={e => setRecoveryData({...recoveryData, newPassword: e.target.value})} style={inputStyle} required />
             </div>
-            <button type="submit" disabled={loading} style={{ ...buttonStyle, backgroundColor: '#3498db' }}>
-              {loading ? "PROCESANDO..." : "CAMBIAR CONTRASEÑA"}
-            </button>
+            <button type="submit" disabled={loading} style={{ ...buttonStyle, backgroundColor: '#3498db' }}>{loading ? "PROCESANDO..." : "CAMBIAR CONTRASEÑA"}</button>
             <button type="button" onClick={() => setStep(1)} style={backBtnStyle}>Atrás</button>
           </form>
         )}
 
-        <div style={footerStyle}>
-          © 2026 Todos los derechos reservados
-        </div>
+        <div style={footerStyle}>© 2026 Todos los derechos reservados</div>
       </div>
     </div>
   );
 }
 
-// --- ESTILOS CON PRIORIDAD ALTA ---
+// --- ESTILOS MEJORADOS ---
 const fullPageBackground = { 
-  display: 'flex', 
-  justifyContent: 'center', 
-  alignItems: 'center', 
-  minHeight: '100vh', 
-  width: '100vw', 
+  display: 'flex', justifyContent: 'center', alignItems: 'center', 
+  minHeight: '100vh', width: '100vw', 
   background: 'linear-gradient(135deg, #2c3e50 0%, #000000 100%)', 
-  position: 'fixed', // Cambiado a fixed para asegurar que cubra todo a pesar del CSS externo
-  top: 0,
-  left: 0,
-  zIndex: 9999
+  position: 'fixed', top: 0, left: 0, zIndex: 10000 
 };
 
 const loginCard = { 
-  width: '90%', 
-  maxWidth: '420px', 
-  padding: '40px 30px', 
-  background: '#ffffff', 
-  borderRadius: '8px', 
-  boxShadow: '0 15px 35px rgba(0,0,0,0.3)', 
+  width: '90%', maxWidth: '420px', padding: '40px 30px', 
+  background: '#ffffff', borderRadius: '8px', 
+  boxShadow: '0 15px 35px rgba(0,0,0,0.3)', boxSizing: 'border-box' 
+};
+
+// CONTENEDOR DEL PASSWORD: Forzamos el relative y aislamos del flex del index.css
+const passwordWrapperStyle = {
+  position: 'relative',
+  width: '100%',
+  display: 'block' // Cambiado de flex a block para evitar que el index.css lo estire raro
+};
+
+const passwordInputStyle = {
+  width: '100%',
+  padding: '12px 45px 12px 15px', // Padding derecho para que el texto no choque con el ojo
+  borderRadius: '4px',
+  border: '1px solid #ced4da',
+  fontSize: '1em',
+  backgroundColor: '#fdfdfd',
   boxSizing: 'border-box',
-  position: 'relative'
+  display: 'block'
 };
 
-const eyeButtonStyle = { 
-  position: 'absolute', 
-  right: '10px', 
-  background: 'none', 
-  border: 'none', 
-  cursor: 'pointer', 
-  fontSize: '1.2em', 
-  padding: '0', 
-  display: 'flex', 
-  alignItems: 'center', 
-  height: '100%',
-  zIndex: 10 // Asegura que esté por encima del input
+const eyeButtonStyle = {
+  position: 'absolute',
+  right: '12px',
+  top: '50%',
+  transform: 'translateY(-50%)', // Centrado vertical perfecto
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  fontSize: '1.2em',
+  padding: '0',
+  zIndex: 11,
+  lineHeight: '1'
 };
 
+// Estilos base
 const linkBtnStyle = { background: 'none', border: 'none', color: '#3498db', cursor: 'pointer', fontSize: '0.85em', textDecoration: 'underline' };
 const backBtnStyle = { background: 'none', border: 'none', color: '#7f8c8d', cursor: 'pointer', fontSize: '0.9em', marginTop: '10px' };
 const logoContainer = { display: 'flex', justifyContent: 'center', marginBottom: '20px' };
-const logoPlaceholder = { width: '100px', height: '100px', borderRadius: '50%', background: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', border: '1px solid #eee' };
+const logoPlaceholder = { width: '100px', height: '100px', borderRadius: '50%', background: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #eee' };
 const headerStyle = { textAlign: 'center', marginBottom: '35px' };
 const inputGroupStyle = { display: 'flex', flexDirection: 'column', gap: '8px' };
 const labelStyle = { fontSize: '0.9em', fontWeight: '600', color: '#34495e' };
 const inputStyle = { padding: '12px 15px', borderRadius: '4px', border: '1px solid #ced4da', fontSize: '1em', backgroundColor: '#fdfdfd' };
-const buttonStyle = { marginTop: '15px', padding: '14px', color: 'white', border: 'none', borderRadius: '4px', fontSize: '1em', fontWeight: 'bold', cursor: 'pointer', backgroundColor: '#27ae60' };
+const buttonStyle = { marginTop: '15px', padding: '14px', color: 'white', border: 'none', borderRadius: '4px', fontSize: '1em', fontWeight: 'bold', cursor: 'pointer' };
 const footerStyle = { textAlign: 'center', marginTop: '40px', fontSize: '0.75em', color: '#bdc3c7' };
 
 export default Login;
